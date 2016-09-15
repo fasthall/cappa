@@ -9,11 +9,9 @@ func main() {
 	router := gin.Default()
 
 	// tasks
-	router.GET("/tasks/:image", tasksGET)
-	router.GET("/tasks/:image/*tail", tasksGET)
+	router.GET("/tasks/:task", tasksGET)
 	router.POST("/tasks", tasksPOST)
-	router.DELETE("/tasks/:image", tasksDELETE)
-	router.DELETE("/tasks/:image/*tail", tasksDELETE)
+	router.DELETE("/tasks/:task", tasksDELETE)
 
 	// trigger
 	router.POST("/trigger", triggerPOST)

@@ -9,16 +9,12 @@ import (
 )
 
 func tasksGET(c *gin.Context) {
-	image := c.Param("image")
-	tail := c.Param("tail")
-	if tail != "" {
-		image = image + tail
-	}
-	exist := docker.Exist(image)
+	task := c.Param("task")
+	image := redis.Get("tasks", task)
 	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusOK,
+		"task":   task,
 		"image":  image,
-		"exist":  exist,
 	})
 }
 
@@ -43,10 +39,6 @@ func tasksPOST(c *gin.Context) {
 }
 
 func tasksDELETE(c *gin.Context) {
-	image := c.Param("image")
-	tail := c.Param("tail")
-	if tail != "" {
-		image = image + tail
-	}
-	docker.Remove(image)
+	task := c.Param("task")
+	redis.Del("tasks", task)
 }
