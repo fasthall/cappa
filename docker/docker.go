@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -8,6 +9,7 @@ import (
 	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
 	"io/ioutil"
+	"os"
 )
 
 var cli *client.Client
@@ -105,4 +107,16 @@ func Logs(cid string) string {
 	}
 	fmt.Printf("%s", content)
 	return string(content)
+}
+
+func Copy(cid string, filename string, path string) {
+	file, err := os.Open(filename)
+	fmt.Println(file, err)
+	err = cli.CopyToContainer(context.Background(), cid, path, bufio.NewReader(file), types.CopyToContainerOptions{
+		AllowOverwriteDirWithFile: true,
+	})
+	fmt.Println(err)
+	if err != nil {
+		panic(err)
+	}
 }

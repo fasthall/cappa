@@ -11,9 +11,9 @@ func TestSetAndGet(t *testing.T) {
 		t.Error("Cannot generate new key")
 	}
 	key, value := uuid.String(), "testvalue"
-	Set(key, value)
-	v := Get(key)
-	Del(key)
+	Set("test", key, value)
+	v := Get("test", key)
+	Del("test", key)
 	if value != v {
 		t.Errorf("[%s] should be %s, but it's %s.", key, value, v)
 	}
