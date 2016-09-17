@@ -70,11 +70,17 @@ func Exist(image string) bool {
 	}
 }
 
-func Create(image string) string {
+func Create(image string, binds []string, env []string) string {
 	ref, tag, err := reference.Parse(image)
 	fmt.Println("Create", ref, tag, err)
 	// AuroRemove doesn't seem to work
-	res, err := cli.ContainerCreate(context.Background(), &container.Config{Image: ref}, &container.HostConfig{AutoRemove: true}, nil, "")
+	res, err := cli.ContainerCreate(context.Background(), &container.Config{
+		Image: ref,
+		Env:   env,
+	}, &container.HostConfig{
+		AutoRemove: true,
+		Binds:      binds,
+	}, nil, "")
 	fmt.Println(err)
 	fmt.Printf("Created a container %s\n", res.ID)
 	return res.ID
@@ -105,7 +111,6 @@ func Logs(cid string) string {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%s", content)
 	return string(content)
 }
 

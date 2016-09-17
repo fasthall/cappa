@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"os"
 )
 
 func main() {
+	pwd, _ := os.Getwd()
+	fmt.Println(pwd)
 	router := gin.Default()
 
 	// tasks
