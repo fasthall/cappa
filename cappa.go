@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/fasthall/cappa/mq"
 	"github.com/gin-gonic/gin"
-	"os"
 )
 
 func main() {
-	pwd, _ := os.Getwd()
-	fmt.Println(pwd)
+	// listen to message queue
+	mqc, _ := mq.NewMQ()
+	go mqc.Listen()
+
 	router := gin.Default()
 
 	// tasks

@@ -11,11 +11,19 @@ import (
 func tasksGET(c *gin.Context) {
 	task := c.Param("task")
 	image := redis.Get("tasks", task)
-	c.JSON(http.StatusOK, gin.H{
-		"status": http.StatusOK,
-		"task":   task,
-		"image":  image,
-	})
+	if image == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"task":   task,
+			"image":  image,
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"status": http.StatusOK,
+			"task":   task,
+			"image":  image,
+		})
+	}
 }
 
 func tasksPOST(c *gin.Context) {
