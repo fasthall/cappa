@@ -1,19 +1,42 @@
 package mq
 
 import (
-	"bufio"
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"github.com/fasthall/cappa/docker"
 	"github.com/fasthall/cappa/redis"
 	"github.com/nu7hatch/gouuid"
 	"github.com/streadway/amqp"
 	"os"
-	"strings"
 )
 
 type MQ struct {
 	conn *amqp.Connection
 	ch   *amqp.Channel
+}
+
+type Data struct {
+	Id      string
+	Payload []byte
+}
+
+func (d *Data) Encode() ([]byte, error) {
+	buf := bytes.NewBuffer(nil)
+	enc := gob.NewEncoder(buf)
+	err := enc.Encode(d)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func Decode(d []byte) (Data, error) {
+	buf := bytes.NewBuffer(d)
+	dec := gob.NewDecoder(buf)
+	var to Data
+	err := dec.Decode(&to)
+	return to, err
 }
 
 func NewMQ() (*MQ, error) {
@@ -58,9 +81,12 @@ func (mq *MQ) Listen() error {
 	}
 
 	for d := range msgs {
-		fmt.Printf("Received a message: %s\n", d.Body)
-		msg := strings.Split(string(d.Body), " ")
-		Trigger(msg[0], msg[1])
+		data, err := Decode(d.Body)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Received a message: %s\n", data)
+		Trigger(data.Id, data.Payload)
 		d.Ack(false)
 	}
 
@@ -73,7 +99,7 @@ func (e *NoTaskError) Error() string {
 	return fmt.Sprintf("Task doesn't exist")
 }
 
-func Trigger(task string, payload string) error {
+func Trigger(task string, payload []byte) error {
 	image := redis.Get("tasks", task)
 	if image == "" {
 		return &NoTaskError{}
@@ -87,7 +113,7 @@ func Trigger(task string, payload string) error {
 	// Mount a file if specified
 	pwd, err := os.Getwd()
 	env := []string{}
-	if payload != "" {
+	if payload != nil {
 		filename := "payload"
 		os.Mkdir(pwd+"/tmp", 0755)
 		os.Mkdir(pwd+"/tmp/"+eid, 0755)
@@ -96,9 +122,10 @@ func Trigger(task string, payload string) error {
 			return err
 		}
 		defer out.Close()
-		writer := bufio.NewWriter(out)
-		writer.WriteString(payload)
-		writer.Flush()
+		_, err = out.Write(payload)
+		if err != nil {
+			return err
+		}
 		env = append(env, "PAYLOAD=/payload/"+filename)
 	}
 
