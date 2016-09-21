@@ -93,6 +93,35 @@ func (mq *MQ) Listen() error {
 	return nil
 }
 
+func (mq *MQ) Send(data Data) error {
+	q, err := mq.ch.QueueDeclare(
+		"cappa",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	body, err := data.Encode()
+	if err != nil {
+		return err
+	}
+	err = mq.ch.Publish(
+		"",     // exchange
+		q.Name, // routing key
+		false,  // mandatory
+		false,
+		amqp.Publishing{
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "text/plain",
+			Body:         body,
+		})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type NoTaskError struct{}
 
 func (e *NoTaskError) Error() string {
