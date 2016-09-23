@@ -1,42 +1,19 @@
 package mq
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
+	"os"
+
 	"github.com/fasthall/cappa/docker"
 	"github.com/fasthall/cappa/redis"
+
 	"github.com/nu7hatch/gouuid"
 	"github.com/streadway/amqp"
-	"os"
 )
 
 type MQ struct {
 	conn *amqp.Connection
 	ch   *amqp.Channel
-}
-
-type Data struct {
-	Id      string
-	Payload []byte
-}
-
-func (d *Data) Encode() ([]byte, error) {
-	buf := bytes.NewBuffer(nil)
-	enc := gob.NewEncoder(buf)
-	err := enc.Encode(d)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func Decode(d []byte) (Data, error) {
-	buf := bytes.NewBuffer(d)
-	dec := gob.NewDecoder(buf)
-	var to Data
-	err := dec.Decode(&to)
-	return to, err
 }
 
 func NewMQ() (*MQ, error) {
@@ -85,15 +62,20 @@ func (mq *MQ) Listen() error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Received a message: %s\n", data)
-		Trigger(data.Id, data.Payload)
+		if data.Type == "database" {
+			fmt.Printf("Received database event at %s.\n", data.Time)
+		} else if data.Type == "datastore" {
+			fmt.Printf("Received datastore event at %s.\n%s", data.Time, data)
+		} else {
+			fmt.Println("Unknown event")
+		}
 		d.Ack(false)
 	}
 
 	return nil
 }
 
-func (mq *MQ) Send(data Data) error {
+func (mq *MQ) Send(event Event) error {
 	q, err := mq.ch.QueueDeclare(
 		"cappa",
 		true,
@@ -102,7 +84,7 @@ func (mq *MQ) Send(data Data) error {
 		false,
 		nil,
 	)
-	body, err := data.Encode()
+	body, err := event.Encode()
 	if err != nil {
 		return err
 	}
