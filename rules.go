@@ -31,4 +31,9 @@ func rulesPOST(c *gin.Context) {
 	//	return
 	//}
 	redis.Set("rules", event+"_"+action, image)
+	c.JSON(http.StatusOK, gin.H{
+		"event":  event,
+		"action": action,
+		"task":   task,
+	})
 }

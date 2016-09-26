@@ -2,6 +2,8 @@ package redis
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -10,7 +12,7 @@ var cli redis.Conn
 func init() {
 	fmt.Println("Trying to connect to redis...")
 	var err error
-	cli, err = redis.Dial("tcp", "128.111.84.202:6379")
+	cli, err = redis.Dial("tcp", os.Getenv("REDIS_HOST"))
 	if err != nil {
 		panic(err)
 	}

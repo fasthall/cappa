@@ -21,7 +21,7 @@ func NewMQ() (*MQ, error) {
 	mq := new(MQ)
 	fmt.Println("Connecting to RabbitMQ...")
 	var err error
-	mq.conn, err = amqp.Dial("amqp://guest2:guest2@128.111.84.202:5672/")
+	mq.conn, err = amqp.Dial("amqp://" + os.Getenv("MQ_USER") + ":" + os.Getenv("MQ_PASSWORD") + "@" + os.Getenv("MQ_HOST") + "/")
 	if err != nil {
 		return nil, err
 	}
