@@ -2,7 +2,7 @@ package datastore
 
 import (
 	"bytes"
-	"fmt"
+	"io/ioutil"
 	"testing"
 )
 
@@ -11,7 +11,8 @@ func TestMinioPut(t *testing.T) {
 	if err != nil {
 		t.Errorf("%s", err)
 	}
-	content := bytes.NewReader([]byte("testcontent"))
+	file, err := ioutil.ReadFile("input.jpg")
+	content := bytes.NewReader(file)
 	err = cli.Put("go-test", "TestMinioPut", content, "application/octet-stream")
 	if err != nil {
 		t.Errorf("%s", err)
@@ -29,5 +30,4 @@ func TestMinioGet(t *testing.T) {
 	}
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(obj)
-	fmt.Println(buf)
 }

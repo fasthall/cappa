@@ -2,6 +2,7 @@ package mq
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/fasthall/cappa/docker"
@@ -79,6 +80,17 @@ func (mq *MQ) Listen() error {
 					panic(err)
 				}
 				env := []string{}
+				os.Mkdir(pwd+"/tmp", 0755)
+				os.Mkdir(pwd+"/tmp/"+eid, 0755)
+				out, err := os.Create(pwd + "/tmp/" + eid + "/fromdatastore")
+				if err != nil {
+					panic(err)
+				}
+				defer out.Close()
+				file, err := os.Open("input.jpg")
+				_, err = io.Copy(out, file)
+				env = append(env, "PAYLOAD=/payload/fromdatastore")
+
 				cid := docker.Create(image, []string{pwd + "/tmp/" + eid + ":/payload"}, env)
 				docker.Start(cid)
 				logs := docker.Logs(cid)

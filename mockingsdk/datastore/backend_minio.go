@@ -15,9 +15,9 @@ type MinioAdapter struct {
 }
 
 func NewMinio() (MinioAdapter, error) {
-	endpoint := "127.0.0.1:9000"
-	accessKeyID := "4IT9T1BIFK3G39RQTZME"
-	secretAccessKey := "XuLZRIf09T/nlyp8snFDqlxaHNizhuLqf5HGarj/"
+	endpoint := "128.111.84.202:9000"
+	accessKeyID := "LQAOJKL6XY3JVYXC1KVI"
+	secretAccessKey := "c8l+7vFGqkBU9eu4Nv8Efv9jSWDfK4vbXl/Kr7dw"
 	useSSL := false
 	cli, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
 	if err != nil {

@@ -10,7 +10,7 @@ var cli redis.Conn
 func init() {
 	fmt.Println("Trying to connect to redis...")
 	var err error
-	cli, err = redis.Dial("tcp", ":6379")
+	cli, err = redis.Dial("tcp", "128.111.84.202:6379")
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,10 @@ func Info() {
 }
 
 func Set(table string, key string, value string) {
-	cli.Do("SET", table+":"+key, value)
+	_, err := cli.Do("SET", table+":"+key, value)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Get(table string, key string) string {
