@@ -12,6 +12,9 @@ func TestMinioPut(t *testing.T) {
 		t.Errorf("%s", err)
 	}
 	file, err := ioutil.ReadFile("input.jpg")
+	if err != nil {
+		t.Errorf("%s", err)
+	}
 	content := bytes.NewReader(file)
 	err = cli.Put("go-test", "TestMinioPut", content, "application/octet-stream")
 	if err != nil {

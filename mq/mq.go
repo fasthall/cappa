@@ -68,7 +68,7 @@ func (mq *MQ) Listen() error {
 			fmt.Printf("Received database event at %s.\n", data.Time)
 		} else if data.Type == "datastore" {
 			fmt.Printf("Received datastore event at %s.\n%s", data.Time, data)
-			key := data.Type + "_" + data.Action
+			key := data.Type + "-" + data.Action + "-" + data.Bucket
 			event, err := uuid.NewV4()
 			if err != nil {
 				panic(err)

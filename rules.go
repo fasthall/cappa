@@ -12,6 +12,7 @@ import (
 func rulesPOST(c *gin.Context) {
 	event := c.PostForm("event")
 	action := c.PostForm("action")
+	bucket := c.PostForm("bucket")
 	task := c.PostForm("task")
 	image := redis.Get("tasks", task)
 	if image == "" {
@@ -30,10 +31,11 @@ func rulesPOST(c *gin.Context) {
 	//	})
 	//	return
 	//}
-	redis.Set("rules", event+"_"+action, image)
+	redis.Set("rules", event+"-"+action+"-"+bucket, image)
 	c.JSON(http.StatusOK, gin.H{
 		"event":  event,
 		"action": action,
+		"bucket": bucket,
 		"task":   task,
 	})
 }
