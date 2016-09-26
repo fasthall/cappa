@@ -66,6 +66,25 @@ func (mq *MQ) Listen() error {
 			fmt.Printf("Received database event at %s.\n", data.Time)
 		} else if data.Type == "datastore" {
 			fmt.Printf("Received datastore event at %s.\n%s", data.Time, data)
+			key := data.Type + "_" + data.Action
+			event, err := uuid.NewV4()
+			if err != nil {
+				panic(err)
+			}
+			eid := event.String()
+			image := redis.Get("rules", key)
+			if image != "" {
+				pwd, err := os.Getwd()
+				if err != nil {
+					panic(err)
+				}
+				env := []string{}
+				cid := docker.Create(image, []string{pwd + "/tmp/" + eid + ":/payload"}, env)
+				docker.Start(cid)
+				logs := docker.Logs(cid)
+				redis.Set("logs", eid, logs)
+				fmt.Println(image, eid)
+			}
 		} else {
 			fmt.Println("Unknown event")
 		}

@@ -16,8 +16,8 @@ type MinioAdapter struct {
 
 func NewMinio() (MinioAdapter, error) {
 	endpoint := "127.0.0.1:9000"
-	accessKeyID := "AVVRYS8CO23QMVH07O55"
-	secretAccessKey := "2r5/xWcQIyopEX6BsM9Cwx7h4iHpvK7fOX7qgbpa"
+	accessKeyID := "4IT9T1BIFK3G39RQTZME"
+	secretAccessKey := "XuLZRIf09T/nlyp8snFDqlxaHNizhuLqf5HGarj/"
 	useSSL := false
 	cli, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
 	if err != nil {
@@ -39,6 +39,9 @@ func (cli MinioAdapter) Put(bucket string, object string, content io.Reader, obj
 		}
 	}
 	_, err = cli.client.PutObject(bucket, object, content, objType)
+	if err != nil {
+		return err
+	}
 	event := mq.Event{
 		Time:   time.Now(),
 		Type:   "datastore",
@@ -46,7 +49,7 @@ func (cli MinioAdapter) Put(bucket string, object string, content io.Reader, obj
 		Bucket: bucket,
 		Object: object,
 	}
-	cli.mq.Send(event)
+	err = cli.mq.Send(event)
 	return err
 }
 

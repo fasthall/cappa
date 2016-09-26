@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/fasthall/cappa/mq"
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,9 @@ func main() {
 	router.GET("/tasks/:task", tasksGET)
 	router.POST("/tasks", tasksPOST)
 	router.DELETE("/tasks/:task", tasksDELETE)
+
+	// rules
+	router.POST("/rules", rulesPOST)
 
 	// trigger
 	router.POST("/trigger", triggerPOST)
