@@ -74,7 +74,10 @@ func (mq *MQ) Listen() error {
 				panic(err)
 			}
 			eid := event.String()
-			image := redis.Get("rules", key)
+			image, err := redis.Get("rules", key)
+			if err != nil {
+				return err
+			}
 			if image != "" {
 				pwd, err := os.Getwd()
 				if err != nil {
@@ -143,7 +146,10 @@ func (e *NoTaskError) Error() string {
 }
 
 func Trigger(task string, payload []byte) error {
-	image := redis.Get("tasks", task)
+	image, err := redis.Get("tasks", task)
+	if err != nil {
+		return err
+	}
 	if image == "" {
 		return &NoTaskError{}
 	}

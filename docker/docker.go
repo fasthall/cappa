@@ -3,13 +3,14 @@ package docker
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/reference"
 	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
-	"io/ioutil"
-	"os"
 )
 
 var cli *client.Client

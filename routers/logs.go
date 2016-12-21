@@ -1,14 +1,18 @@
-package main
+package routers
 
 import (
+	"net/http"
+
 	"github.com/fasthall/cappa/redis"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
-func logsGET(c *gin.Context) {
+func LogsGET(c *gin.Context) {
 	log := c.Param("log")
-	content := redis.Get("logs", log)
+	content, err := redis.Get("logs", log)
+	if err != nil {
+		panic(err)
+	}
 	if content == "" {
 		c.String(http.StatusBadRequest, "Log not found")
 	} else {

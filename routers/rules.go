@@ -1,4 +1,4 @@
-package main
+package routers
 
 import (
 	"net/http"
@@ -9,12 +9,15 @@ import (
 	//"github.com/nu7hatch/gouuid"
 )
 
-func rulesPOST(c *gin.Context) {
+func RulesPOST(c *gin.Context) {
 	event := c.PostForm("event")
 	action := c.PostForm("action")
 	bucket := c.PostForm("bucket")
 	task := c.PostForm("task")
-	image := redis.Get("tasks", task)
+	image, err := redis.Get("tasks", task)
+	if err != nil {
+		panic(err)
+	}
 	if image == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"task":   task,

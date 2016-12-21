@@ -1,25 +1,28 @@
-package main
+package routers
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+
 	"github.com/fasthall/cappa/docker"
 	"github.com/fasthall/cappa/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/nu7hatch/gouuid"
-	"io"
-	"net/http"
-	"os"
 )
 
-func triggerPOST(c *gin.Context) {
+func TriggerPOST(c *gin.Context) {
 	// Find the image
 	task := c.Query("task")
-	image := redis.Get("tasks", task)
+	image, err := redis.Get("tasks", task)
+	if err != nil {
+		panic(err)
+	}
 	if image == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"task":   task,
-			"image":  "not found",
-			"result": "",
+			"task":    task,
+			"message": "Image not found",
 		})
 	}
 

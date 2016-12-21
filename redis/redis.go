@@ -34,11 +34,13 @@ func Set(table string, key string, value string) {
 	}
 }
 
-func Get(table string, key string) string {
-	value, _ := redis.String(cli.Do("GET", table+":"+key))
-	return value
+func Get(table string, key string) (string, error) {
+	value, err := redis.String(cli.Do("GET", table+":"+key))
+	return value, err
 }
 
-func Del(table string, key string) {
-	cli.Do("Del", table+":"+key)
+func Del(table string, key string) error {
+	// return number of entries deleted
+	_, err := cli.Do("Del", table+":"+key)
+	return err
 }
