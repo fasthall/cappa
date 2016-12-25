@@ -2,6 +2,7 @@ package docker
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/reference"
 	"github.com/docker/docker/client"
+	"github.com/fasthall/cappa/redis"
 	"golang.org/x/net/context"
 )
 
@@ -40,7 +42,7 @@ func List() []string {
 	return list
 }
 
-func Pull(image string) {
+func Pull(key string, image string) {
 	ref, tag, err := reference.Parse(image)
 	fmt.Println("Pull", ref, tag, err)
 	resp, err := cli.ImagePull(context.Background(), ref, types.ImagePullOptions{})
@@ -51,6 +53,9 @@ func Pull(image string) {
 	if err != nil {
 		panic(err)
 	}
+	value := map[string]string{"image": image, "status": "downloaded", "uuid": key}
+	jsonValue, _ := json.Marshal(value)
+	redis.Set("tasks", key, string(jsonValue))
 	fmt.Println(string(body))
 }
 

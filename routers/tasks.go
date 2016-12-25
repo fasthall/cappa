@@ -3,6 +3,10 @@ package routers
 import (
 	"net/http"
 
+	"encoding/json"
+
+	"fmt"
+
 	"github.com/fasthall/cappa/docker"
 	"github.com/fasthall/cappa/redis"
 	"github.com/gin-gonic/gin"
@@ -11,24 +15,27 @@ import (
 
 func TasksGET(c *gin.Context) {
 	task := c.Param("task")
-	image, err := redis.Get("tasks", task)
+	jsonValue, err := redis.Get("tasks", task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Error when reading from Redis",
 		})
 		return
 	}
-	if image == "" {
+	var value map[string]string
+	err = json.Unmarshal([]byte(jsonValue), &value)
+	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"task":  task,
-			"image": image,
+			"message": "Error when parsing value",
 		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"task":  task,
-			"image": image,
-		})
+		return
 	}
+	c.JSON(http.StatusOK, gin.H{
+		"uuid":   value["uuid"],
+		"image":  value["image"],
+		"status": value["status"],
+	})
 }
 
 func TasksPOST(c *gin.Context) {
@@ -41,12 +48,15 @@ func TasksPOST(c *gin.Context) {
 		return
 	}
 	key := uuid.String()
-	redis.Set("tasks", key, image)
-	docker.Pull(image)
+	value := map[string]string{"image": image, "status": "pulling", "uuid": key}
+	jsonValue, _ := json.Marshal(value)
+	redis.Set("tasks", key, string(jsonValue))
+	go docker.Pull(key, image)
 
 	c.JSON(http.StatusOK, gin.H{
-		"uuid":  key,
-		"image": image,
+		"uuid":   key,
+		"image":  image,
+		"status": "pulling",
 	})
 }
 

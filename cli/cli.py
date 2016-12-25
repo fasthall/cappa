@@ -14,6 +14,10 @@ if __name__ == '__main__':
 		print(r.status_code)
 		print(r.text)
 	elif sys.argv[1] == 'log':
-		r = requests.get('http://localhost:8080/logs/' + sys.argv[2])
-		print(r.status_code)
-		print(r.text)
+		for i in range(100):
+			print(i)
+			r = requests.get('http://localhost:8080/logs/' + sys.argv[2])
+			print(r.status_code)
+			print(r.text)
+	else:
+		print('Unrecognized command ' + sys.argv[1])

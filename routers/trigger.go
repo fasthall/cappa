@@ -1,8 +1,10 @@
 package routers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 
@@ -15,15 +17,21 @@ import (
 func TriggerPOST(c *gin.Context) {
 	// Find the image
 	task := c.Query("task")
-	image, err := redis.Get("tasks", task)
+	jsonValue, err := redis.Get("tasks", task)
 	if err != nil {
-		panic(err)
-	}
-	if image == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"task":    task,
-			"message": "Image not found",
+			"message": "Error when reading from Redis",
 		})
+		return
+	}
+	var value map[string]string
+	err = json.Unmarshal([]byte(jsonValue), &value)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Error when parsing value",
+		})
+		return
 	}
 
 	event, err := uuid.NewV4()
@@ -34,10 +42,24 @@ func TriggerPOST(c *gin.Context) {
 	}
 	eid := event.String()
 
-	// Mount a file if specified
-	pwd, err := os.Getwd()
+	// read the payload
 	file, header, err := c.Request.FormFile("upload")
-	env := []string{}
+	go createAndStart(file, header, eid, value["image"])
+
+	c.JSON(http.StatusOK, gin.H{
+		"task":  task,
+		"image": value["image"],
+		"event": eid,
+	})
+}
+
+func createAndStart(file multipart.File, header *multipart.FileHeader, eid string, image string) {
+	fmt.Println(header, eid, image)
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	var env []string
 	if header != nil {
 		filename := header.Filename
 		fmt.Println(header.Filename)
@@ -57,9 +79,4 @@ func TriggerPOST(c *gin.Context) {
 	docker.Start(cid)
 	logs := docker.Logs(cid)
 	redis.Set("logs", eid, logs)
-	c.JSON(http.StatusOK, gin.H{
-		"task":  task,
-		"image": image,
-		"event": eid,
-	})
 }
