@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -14,22 +13,26 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
+// TriggerPOST triggers a posted task
 func TriggerPOST(c *gin.Context) {
 	// Find the image
 	task := c.Query("task")
-	jsonValue, err := redis.Get("tasks", task)
+	value, err := redis.Hgetall("task", task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Error when reading from Redis",
 		})
 		return
 	}
-	var value map[string]string
-	err = json.Unmarshal([]byte(jsonValue), &value)
-	if err != nil {
-		fmt.Println(err)
+	if value == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Error when parsing value",
+			"message": "Couldn't find the task",
+		})
+		return
+	}
+	if value["status"] != "downloaded" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "The container image of the task has not been downloaded yet",
 		})
 		return
 	}
@@ -39,6 +42,7 @@ func TriggerPOST(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "couldn't generate new event ID",
 		})
+		return
 	}
 	eid := event.String()
 

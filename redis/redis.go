@@ -30,6 +30,7 @@ func init() {
 	fmt.Println("Connected to redis.")
 }
 
+// Info prints the information of Redis server
 func Info() {
 	conn := pool.Get()
 	defer conn.Close()
@@ -40,23 +41,59 @@ func Info() {
 	fmt.Printf("%s\n", info)
 }
 
-func Set(table string, key string, value string) {
+// Set sets the value of the given key
+func Set(table, key string, value string) (interface{}, error) {
 	conn := pool.Get()
 	defer conn.Close()
-	_, err := conn.Do("SET", table+":"+key, value)
-	if err != nil {
-		panic(err)
-	}
+	return conn.Do("SET", table+":"+key, value)
 }
 
-func Get(table string, key string) (string, error) {
+// Hmset sets values of multiple fields of the given hash
+func Hmset(table, key string, uuid, image, status string) (interface{}, error) {
+	conn := pool.Get()
+	defer conn.Close()
+	return conn.Do("HMSET", table+":"+key, "uuid", uuid, "image", image, "status", status)
+}
+
+// Hset sets the value of the given field of hash
+func Hset(table, key string, status string) (interface{}, error) {
+	conn := pool.Get()
+	defer conn.Close()
+	return conn.Do("HSET", table+":"+key, "status", status)
+}
+
+// Get gets the valud of the given key
+func Get(table, key string) (string, error) {
 	conn := pool.Get()
 	defer conn.Close()
 	value, err := redis.String(conn.Do("GET", table+":"+key))
 	return value, err
 }
 
-func Del(table string, key string) error {
+func Hgetall(table, key string) (map[string]string, error) {
+	conn := pool.Get()
+	defer conn.Close()
+	v, err := conn.Do("HGETALL", table+":"+key)
+	if err != nil {
+		return nil, err
+	}
+	s, err := redis.Strings(v, err)
+	if err != nil {
+		return nil, err
+	}
+	if len(s) == 0 {
+		return nil, err
+	}
+	args := map[string]string{
+		s[0]: s[1],
+		s[2]: s[3],
+		s[4]: s[5],
+	}
+	return args, nil
+}
+
+// Del deletes the given key
+func Del(table, key string) error {
 	conn := pool.Get()
 	defer conn.Close()
 	// return number of entries deleted

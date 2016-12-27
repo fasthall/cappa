@@ -2,7 +2,6 @@ package docker
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -53,9 +52,10 @@ func Pull(key string, image string) {
 	if err != nil {
 		panic(err)
 	}
-	value := map[string]string{"image": image, "status": "downloaded", "uuid": key}
-	jsonValue, _ := json.Marshal(value)
-	redis.Set("tasks", key, string(jsonValue))
+	_, err = redis.Hset("task", key, "downloaded")
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(string(body))
 }
 
